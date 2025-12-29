@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bluetooth Settings</title>
+
+<!-- QR Generator -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+<!-- QR Scanner -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+/* ---------- CSS ---------- */
+body {
+    background: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    margin: 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    align-items: center;
+}
+
+.icons span {
+    font-size: 20px;
+    margin-left: 15px;
+    cursor: pointer;
+}
+
+.card {
+    background: #0b2745;
+    margin: 15px;
+    padding: 20px;
+    border-radius: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.switch {
+    width: 55px;
+    height: 30px;
+    position: relative;
+}
+
+.switch input {
+    display: none;
+}
+
+.slider {
+    background: #555;
+    position: absolute;
+    inset: 0;
+    border-radius: 30px;
+    cursor: pointer;
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    background: white;
+    border-radius: 50%;
+    top: 4px;
+    left: 4px;
+    transition: 0.3s;
+}
+
+input:checked + .slider {
+    background: #3fa9ff;
+}
+
+input:checked + .slider:before {
+    transform: translateX(24px);
+}
+
+.info {
+    padding: 0 15px;
+    color: #aaa;
+}
+
+button {
+    margin: 15px;
+    width: calc(100% - 30px);
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #3fa9ff;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#devices div {
+    padding: 10px 15px;
+    border-bottom: 1px solid #333;
+}
+
+#qrcode {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+#scanner {
+    margin: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <h2>Bluetooth</h2>
+    <div class="icons">
+        <span onclick="startScanner()">📷</span>
+        <span onclick="generateQR()">🔳</span>
+    </div>
+</div>
+
+<!-- TOGGLE CARD -->
+<div class="card">
+    <span id="btStatus">ON</span>
+    <label class="switch">
+        <input type="checkbox" checked onchange="toggleBT(this)">
+        <span class="slider"></span>
+    </label>
+</div>
+
+<p class="info">
+Make sure your device is in pairing mode.
+</p>
+
+<button onclick="scanBluetooth()">Scan Bluetooth Devices</button>
+
+<h3 style="padding-left:15px;">Devices</h3>
+<div id="devices"></div>
+
+<div id="qrcode"></div>
+<div id="scanner"></div>
+
+<script>
+/* ---------- JAVASCRIPT ---------- */
+
+/* Toggle Bluetooth */
+function toggleBT(el) {
+    document.getElementById("btStatus").innerText =
+        el.checked ? "ON" : "OFF";
+}
+
+/* Generate QR Code */
+function generateQR() {
+    const qrDiv = document.getElementById("qrcode");
+    qrDiv.innerHTML = "";
+
+    new QRCode(qrDiv, {
+        text: "Smart Bluetooth Pairing Request",
+        width: 180,
+        height: 180
+    });
+}
+
+/* QR Scanner */
+let qrScanner;
+
+function startScanner() {
+    const scannerDiv = document.getElementById("scanner");
+    scannerDiv.innerHTML = "<div id='reader' style='width:300px;margin:auto'></div>";
+
+    qrScanner = new Html5Qrcode("reader");
+
+    qrScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        (decodedText) => {
+            alert("QR Scanned: " + decodedText);
+            qrScanner.stop();
+        },
+        () => {}
+    );
+}
+
+/* Bluetooth Scan (Browser-limited) */
+async function scanBluetooth() {
+    if (!navigator.bluetooth) {
+        alert("Bluetooth not supported in this browser");
+        return;
+    }
+
+    try {
+        const device = await navigator.bluetooth.requestDevice({
+            acceptAllDevices: true
+        });
+
+        const div = document.createElement("div");
+        div.innerText = device.name || "Unknown Device";
+        document.getElementById("devices").appendChild(div);
+
+    } catch (err) {
+        alert("Bluetooth scan cancelled or blocked");
+    }
+}
+</script>
+
+</body>
+</html>
